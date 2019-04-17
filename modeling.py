@@ -21,6 +21,7 @@ from __future__ import print_function
 import collections
 import copy
 import json
+import logging
 import math
 import re
 import numpy as np
@@ -331,8 +332,14 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
 
   assignment_map = collections.OrderedDict()
   for x in init_vars:
-    (name, var) = (x[0], x[1])
+    (name, shape_list) = (x[0], x[1])
     if name not in name_to_variable:
+      continue
+    tvar_shape = name_to_variable[name].get_shape().as_list()
+    if shape_list != tvar_shape:
+      msg = 'variable=%s is ignored because of mismatched shape %s vs %s' \
+            % (name, shape_list, tvar_shape)
+      logging.warning(msg)
       continue
     assignment_map[name] = name
     initialized_variable_names[name] = 1
